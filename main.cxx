@@ -1,10 +1,4 @@
-/**
- * main.cxx
- *
- * Part of LibCoders-GUI
- * by snovvcrash
- * 07.2017
- */
+
 
 /*
  * Copyright (C) 2017 snovvcrash
