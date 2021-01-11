@@ -1,4 +1,16 @@
+#
+# libcoders.pro
+#
+# Part of LibCoders-GUI
+# by snovvcrash
+# 07.2017
+#
 
+#--------------------------------------
+#
+# Project created by QtCreator 2017-07
+#
+#--------------------------------------
 
 QT             += core gui
 QMAKE_CXXFLAGS += -std=c++0x -O2
