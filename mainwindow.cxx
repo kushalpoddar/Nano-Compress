@@ -16,6 +16,7 @@ Topic : Nano Compress  : A tool for compression using C++
 
 Please find the link to the report here
 https://docs.google.com/presentation/d/1tR-VtD5DP9qoRi20wdlXQgLjodeaWK1l1Uw-vz4shCw/edit?usp=sharing*/
+
 #include <QtWidgets>
 #include <QtConcurrentRun>
 
@@ -24,7 +25,6 @@ https://docs.google.com/presentation/d/1tR-VtD5DP9qoRi20wdlXQgLjodeaWK1l1Uw-vz4s
 #include <cstdint>
 #include <utility>
 #include <chrono>
-#include <linux/limits.h> // PATH_MAX
 #include <sys/types.h>    // S_ISREG
 #include <sys/stat.h>     // struct stat
 
@@ -66,14 +66,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	ui->progressBar->setRange(0, 100);
 	ui->progressBar->setValue(100);
 	ui->progressBar->setTextVisible(false);
+
 }
 
+//call destructor
 MainWindow::~MainWindow() {
 	delete ui;
 }
 
 void MainWindow::currentInFileNameWatcher() {
-	QString qStr_inFileName = ui->inFileNameComboBox->currentText();
+    QString qStr_inFileName = ui->inFileNameComboBox->currentText();//take the name of the algo
 	QString extension = QFileInfo(qStr_inFileName).fileName().section('.', -1, -1);
 
 	if (extension == "shenn" || extension == "fano" || extension == "huff" ||
@@ -89,6 +91,8 @@ void MainWindow::futureWatcherStarted() {
 	ui->progressBar->setRange(0, 0);
 	ui->progressBar->setValue(0);
 
+
+    //default settings are are false when ui starts
 	ui->browseButton->setEnabled(false);
 	ui->compressButton->setEnabled(false);
 	ui->decompressButton->setEnabled(false);
@@ -116,15 +120,17 @@ void MainWindow::futureWatcherFinished() {
 }
 
 void MainWindow::compressFutureWatcherFinished() {
+    //Calculate the time difference of compression or decrompression
 	auto end = std::chrono::steady_clock::now();
 	auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - m_start).count();
 
 	ui->outputTextEdit->insertPlainText("Done\n");
 
 	QString qStr_inFileName = ui->inFileNameComboBox->currentText();
+    //the Unicode data is converted into 8-bit characters using QString::toUtf8(). It returns Qbytearray
 	QByteArray qB_inFileName = qStr_inFileName.toUtf8();
-	char const *inFileName = qB_inFileName.data();
-	QString fileName = QFileInfo(qStr_inFileName).fileName();
+    char const *inFileName = qB_inFileName.data();//return the pointer to the data stored in qb_infile
+    QString fileName = QFileInfo(qStr_inFileName).fileName();//returns the name of the file excluding the path
 
 	QString extension = MainWindow::getCurrentMethod().second;
 	QString qStr_outFileName = fileName + extension;
@@ -139,14 +145,18 @@ void MainWindow::compressFutureWatcherFinished() {
 	if (prepareInputFile(outFileName, outFile))
 		return;
 
+    //Using seek g , find the size of the file. Move the pointer to the end and measure
 	inFile.seekg(0, std::ios::end);
+    //uint64_t is unsigned long long
 	uint64_t inSize = inFile.tellg();
 	double inSize_Kb = static_cast<double>(inSize) / 1024;
-
+    //calculate the size of the compresssed file
 	outFile.seekg(0, std::ios::end);
 	uint64_t outSize = outFile.tellg();
 	double outSize_Kb = static_cast<double>(outSize) / 1024;
 
+    //Ratio of compression
+    //insize - outsize_Kb
 	int ratio = (inSize_Kb - outSize_Kb) / inSize_Kb * 100;
 
 	ui->outputTextEdit->append("Original file:           ");
@@ -174,6 +184,7 @@ void MainWindow::compressFutureWatcherFinished() {
 }
 
 void MainWindow::decompressFutureWatcherFinished() {
+    //calculation of time required to complete decompression
 	auto end = std::chrono::steady_clock::now();
 	auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - m_start).count();
 
@@ -181,6 +192,7 @@ void MainWindow::decompressFutureWatcherFinished() {
 
 	QString qStr_inFileName = ui->inFileNameComboBox->currentText();
 	QString fileName = QFileInfo(qStr_inFileName).fileName().section('.', 0, -2);
+    //In the above line input file will have ".huff " extension. Section function removes that
 
 	QString qStr_outFileName = fileName;
 	QByteArray qB_ouFileName = qStr_outFileName.toUtf8();
@@ -189,7 +201,7 @@ void MainWindow::decompressFutureWatcherFinished() {
 	std::ifstream outFile;
 	if (prepareInputFile(outFileName, outFile))
 		return;
-
+    //calculate the file size
 	outFile.seekg(0, std::ios::end);
 	uint64_t outSize = outFile.tellg();
 	double outSize_Kb = static_cast<double>(outSize) / 1024;
@@ -372,7 +384,7 @@ int MainWindow::prepareInputFile(char const *inFileName, std::ifstream& inFile) 
 		return ERROR_IS_REGULAR_FILE;
 	}
 
-	inFile.open(inFileName, std::ios::binary);
+    inFile.open(inFileName, std::ios::binary);//open the file in binary mode
 
 	if (!inFile.is_open()) {
 		std::cerr << "main: " << std::strerror(errno) << std::endl;
@@ -397,3 +409,4 @@ int MainWindow::prepareOutputFile(char const *outFileName, std::ofstream& outFil
 
 	return 0;
 }
+
