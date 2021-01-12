@@ -1,7 +1,7 @@
 
 
-/*********************************Project Report********************************
 
+/*
 Nano Compress
 
 Name : Pinaki Das and Kushal Poddar
